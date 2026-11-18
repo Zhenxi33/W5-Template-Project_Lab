@@ -6,6 +6,10 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    Button btnRock;         // Rock button
+    Button btnPaper;        // Paper button
+    Button btnScissor;      // Scissors button
+
     Image imgYou;           // your selected image (rock, paper, scissor)
     Image imgCom;           // computer selected image (rock, paper, scissor)
 
@@ -22,12 +26,36 @@ public class GameManager : MonoBehaviour
 
     private void InitGame()
     {
+        // 1. Find and hook up the 3 Buttons automatically
+        btnRock = FindButton("1_Rock Button", "Rock Button");
+        btnPaper = FindButton("2_Paper Button", "Paper Button");
+        btnScissor = FindButton("3_Scissor Button", "Scissors Button", "Scissor Button");
+
+        SetupButton(btnRock);
+        SetupButton(btnPaper);
+        SetupButton(btnScissor);
+
+        // Make sure UI Panel does not block button clicks
+        GameObject uiPanel = GameObject.Find("UI_Panel") ?? GameObject.Find("UI Panel");
+        if (uiPanel != null)
+        {
+            foreach (Graphic g in uiPanel.GetComponentsInChildren<Graphic>(true))
+            {
+                if (g.GetComponent<Button>() == null)
+                {
+                    g.raycastTarget = false;
+                }
+            }
+        }
+
+        // 2. Find the Images
         GameObject youImgObj = GameObject.Find("ImgYou");
         if (youImgObj != null) imgYou = youImgObj.GetComponent<Image>();
 
         GameObject comImgObj = GameObject.Find("ImgCom") ?? GameObject.Find("ImgCam");
         if (comImgObj != null) imgCom = comImgObj.GetComponent<Image>();
 
+        // 3. Find the Score & Result Texts
         GameObject youScoreObj = FindScoreTextObject("ImgScore_You", "TxtYou");
         if (youScoreObj != null)
         {
@@ -53,6 +81,24 @@ public class GameManager : MonoBehaviour
         }
 
         SetText(txtResult, tmpResult, "Select the button below");
+    }
+
+    private Button FindButton(params string[] names)
+    {
+        foreach (string name in names)
+        {
+            GameObject obj = GameObject.Find(name);
+            if (obj != null) return obj.GetComponent<Button>();
+        }
+        return null;
+    }
+
+    private void SetupButton(Button btn)
+    {
+        if (btn == null) return;
+        btn.onClick = new Button.ButtonClickedEvent();
+        GameObject btnObj = btn.gameObject;
+        btn.onClick.AddListener(() => OnButtonClick(btnObj));
     }
 
     private GameObject FindScoreTextObject(string parentName, string txtName)
